@@ -279,7 +279,7 @@ public class UtilitiesTestBase {
       List<GenericRecord> records = new ArrayList<>();
       for (HoodieRecord hoodieRecord : hoodieRecords) {
         records.add(toGenericRecord(hoodieRecord));
-      }TestHoodieDeltaStreamer
+      }
       return records;
     }
 
