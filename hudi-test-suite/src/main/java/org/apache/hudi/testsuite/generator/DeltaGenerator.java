@@ -33,7 +33,6 @@ import org.apache.hudi.testsuite.reader.DeltaInputReader;
 import org.apache.hudi.testsuite.writer.WriteStats;
 import org.apache.hudi.utilities.converter.Converter;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -150,7 +149,6 @@ public class DeltaGenerator implements Serializable {
     }
   }
 
-  @VisibleForTesting
   public Map<Integer, Long> getPartitionToCountMap(JavaRDD<GenericRecord> records) {
     // Requires us to keep the partitioner the same
     return records.mapPartitionsWithIndex((index, itr) -> {
@@ -161,7 +159,6 @@ public class DeltaGenerator implements Serializable {
     }, true).mapToPair(i -> i).collectAsMap();
   }
 
-  @VisibleForTesting
   public Map<Integer, Long> getAdjustedPartitionsCount(Map<Integer, Long> partitionCountMap, long
       recordsToRemove) {
     long remainingRecordsToRemove = recordsToRemove;
@@ -184,7 +181,6 @@ public class DeltaGenerator implements Serializable {
     return adjustedPartitionCountMap;
   }
 
-  @VisibleForTesting
   public JavaRDD<GenericRecord> adjustRDDToGenerateExactNumUpdates(JavaRDD<GenericRecord> updates, JavaSparkContext
       jsc, long totalRecordsRequired) {
     Map<Integer, Long> actualPartitionCountMap = getPartitionToCountMap(updates);

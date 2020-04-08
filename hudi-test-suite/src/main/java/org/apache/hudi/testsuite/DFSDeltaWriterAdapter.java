@@ -21,7 +21,6 @@ package org.apache.hudi.testsuite;
 import org.apache.hudi.testsuite.writer.FileDeltaInputWriter;
 import org.apache.hudi.testsuite.writer.WriteStats;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.avro.generic.GenericRecord;
 
 import java.io.IOException;
@@ -56,7 +55,6 @@ public class DFSDeltaWriterAdapter implements DeltaWriterAdapter<GenericRecord> 
     return this.metrics;
   }
 
-  @VisibleForTesting
   public void rollOver() throws IOException {
     close();
     this.deltaInputGenerator = this.deltaInputGenerator.getNewWriter();

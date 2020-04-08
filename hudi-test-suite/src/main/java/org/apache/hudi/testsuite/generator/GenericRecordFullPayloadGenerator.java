@@ -20,7 +20,6 @@ package org.apache.hudi.testsuite.generator;
 
 import org.apache.hudi.common.util.collection.Pair;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Type;
 import org.apache.avro.generic.GenericData;
@@ -183,7 +182,6 @@ public class GenericRecordFullPayloadGenerator implements Serializable {
     }
   }
 
-  @VisibleForTesting
   public boolean validate(GenericRecord record) {
     return genericData.validate(baseSchema, record);
   }

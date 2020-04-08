@@ -24,7 +24,6 @@ import org.apache.hudi.testsuite.DeltaInputFormat;
 import org.apache.hudi.testsuite.DeltaOutputType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
 
 import java.io.Serializable;
@@ -88,7 +87,6 @@ public class DeltaConfig implements Serializable {
 
     private Map<String, Object> configsMap;
 
-    @VisibleForTesting
     public Config(Map<String, Object> configsMap) {
       this.configsMap = configsMap;
     }

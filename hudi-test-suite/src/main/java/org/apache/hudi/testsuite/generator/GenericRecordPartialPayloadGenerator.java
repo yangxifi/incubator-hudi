@@ -18,7 +18,6 @@
 
 package org.apache.hudi.testsuite.generator;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
@@ -59,7 +58,6 @@ public class GenericRecordPartialPayloadGenerator extends GenericRecordFullPaylo
     }
   }
 
-  @VisibleForTesting
   @Override
   public boolean validate(GenericRecord record) {
     return validate((Object) record);

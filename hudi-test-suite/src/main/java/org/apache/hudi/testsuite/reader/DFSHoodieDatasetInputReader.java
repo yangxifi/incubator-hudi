@@ -18,6 +18,7 @@
 
 package org.apache.hudi.testsuite.reader;
 
+import java.util.NoSuchElementException;
 import org.apache.hudi.common.model.FileSlice;
 import org.apache.hudi.common.model.HoodieRecord;
 import org.apache.hudi.common.model.HoodieRecordPayload;
@@ -28,12 +29,11 @@ import org.apache.hudi.common.table.view.HoodieTableFileSystemView;
 import org.apache.hudi.common.fs.FSUtils;
 import org.apache.hudi.avro.HoodieAvroUtils;
 import org.apache.hudi.common.util.Option;
+import org.apache.hudi.common.util.ValidationUtils;
 import org.apache.hudi.config.HoodieMemoryConfig;
 import org.apache.hudi.client.utils.ParquetReaderIterator;
 import org.apache.hudi.hadoop.realtime.AbstractRealtimeRecordReader;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.IndexedRecord;
@@ -87,7 +87,7 @@ public class DFSHoodieDatasetInputReader extends DFSDeltaInputReader {
     // Sort partition so we can pick last N partitions by default
     Collections.sort(partitionPaths);
     if (!partitionPaths.isEmpty()) {
-      Preconditions.checkArgument(partitionPaths.size() >= partitionsLimit.get(),
+      ValidationUtils.checkArgument(partitionPaths.size() >= partitionsLimit.get(),
           "Cannot generate updates for more partitions " + "than present in the dataset, partitions "
               + "requested " + partitionsLimit.get() + ", partitions present " + partitionPaths.size());
       return partitionPaths.subList(0, partitionsLimit.get());
@@ -142,7 +142,7 @@ public class DFSHoodieDatasetInputReader extends DFSDeltaInputReader {
         partitionPaths);
     // TODO : read record count from metadata
     // Read the records in a single file
-    long recordsInSingleFile = Iterators.size(readParquetOrLogFiles(getSingleSliceFromRDD(partitionToFileSlice)));
+    long recordsInSingleFile = iteratorSize(readParquetOrLogFiles(getSingleSliceFromRDD(partitionToFileSlice)));
     int numFilesToUpdate;
     long numRecordsToUpdatePerFile;
     if (!numFiles.isPresent() || numFiles.get() == 0) {
@@ -183,10 +183,10 @@ public class DFSHoodieDatasetInputReader extends DFSDeltaInputReader {
       JavaPairRDD<String, Iterator<FileSlice>> partitionToFileSlice, int numFiles, int numRecordsToReadPerFile) {
     return partitionToFileSlice.map(p -> {
       int maxFilesToRead = adjustedPartitionToFileIdCountMap.get(p._1);
-      return Iterators.limit(p._2, maxFilesToRead);
+      return iteratorLimit(p._2, maxFilesToRead);
     }).flatMap(p -> p).repartition(numFiles).map(fileSlice -> {
       if (numRecordsToReadPerFile > 0) {
-        return Iterators.limit(readParquetOrLogFiles(fileSlice), numRecordsToReadPerFile);
+        return iteratorLimit(readParquetOrLogFiles(fileSlice), numRecordsToReadPerFile);
       } else {
         return readParquetOrLogFiles(fileSlice);
       }
@@ -196,10 +196,10 @@ public class DFSHoodieDatasetInputReader extends DFSDeltaInputReader {
   private Map<String, Integer> getFilesToReadPerPartition(JavaPairRDD<String, Iterator<FileSlice>>
       partitionToFileSlice, Integer numPartitions, Integer numFiles) {
     int numFilesPerPartition = (int) Math.ceil(numFiles / numPartitions);
-    Map<String, Integer> partitionToFileIdCountMap = partitionToFileSlice.mapToPair(p -> new Tuple2<>(p._1, Iterators
-        .size(p._2))).collectAsMap();
+    Map<String, Integer> partitionToFileIdCountMap = partitionToFileSlice
+        .mapToPair(p -> new Tuple2<>(p._1, iteratorSize(p._2))).collectAsMap();
     long totalExistingFilesCount = partitionToFileIdCountMap.values().stream().reduce((a, b) -> a + b).get();
-    Preconditions.checkArgument(totalExistingFilesCount >= numFiles, "Cannot generate updates "
+    ValidationUtils.checkArgument(totalExistingFilesCount >= numFiles, "Cannot generate updates "
         + "for more files than present in the dataset, file requested " + numFiles + ", files present "
         + totalExistingFilesCount);
     Map<String, Integer> partitionToFileIdCountSortedMap = partitionToFileIdCountMap
@@ -263,6 +263,59 @@ public class DFSHoodieDatasetInputReader extends DFSDeltaInputReader {
             }
           }).iterator();
     }
+  }
+
+  /**
+   * Returns the number of elements remaining in {@code iterator}. The iterator
+   * will be left exhausted: its {@code hasNext()} method will return
+   * {@code false}.
+   */
+  private static int iteratorSize(Iterator<?> iterator) {
+    int count = 0;
+    while (iterator.hasNext()) {
+      iterator.next();
+      count++;
+    }
+    return count;
+  }
+
+  /**
+   * Creates an iterator returning the first {@code limitSize} elements of the
+   * given iterator. If the original iterator does not contain that many
+   * elements, the returned iterator will have the same behavior as the original
+   * iterator. The returned iterator supports {@code remove()} if the original
+   * iterator does.
+   *
+   * @param iterator the iterator to limit
+   * @param limitSize the maximum number of elements in the returned iterator
+   * @throws IllegalArgumentException if {@code limitSize} is negative
+   */
+  private static <T> Iterator<T> iteratorLimit(
+      final Iterator<T> iterator, final int limitSize) {
+    ValidationUtils.checkArgument(iterator != null, "iterator is null");
+    ValidationUtils.checkArgument(limitSize >= 0, "limit is negative");
+    return new Iterator<T>() {
+      private int count;
+
+      @Override
+      public boolean hasNext() {
+        return count < limitSize && iterator.hasNext();
+      }
+
+      @Override
+      public T next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+        count++;
+        return iterator.next();
+      }
+
+      @Override
+      public void remove() {
+        iterator.remove();
+      }
+    };
   }
 
   @Override

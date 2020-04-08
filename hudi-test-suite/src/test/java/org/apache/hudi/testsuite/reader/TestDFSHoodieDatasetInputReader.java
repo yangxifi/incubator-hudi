@@ -18,12 +18,12 @@
 
 package org.apache.hudi.testsuite.reader;
 
+import org.apache.hudi.avro.HoodieAvroUtils;
 import org.apache.hudi.client.HoodieWriteClient;
 import org.apache.hudi.client.WriteStatus;
 import org.apache.hudi.common.HoodieTestDataGenerator;
 import org.apache.hudi.common.model.HoodieRecord;
 import org.apache.hudi.common.model.HoodieTestUtils;
-import org.apache.hudi.avro.HoodieAvroUtils;
 import org.apache.hudi.config.HoodieWriteConfig;
 import org.apache.hudi.utilities.UtilitiesTestBase;
 import org.apache.hudi.utilities.schema.FilebasedSchemaProvider;
