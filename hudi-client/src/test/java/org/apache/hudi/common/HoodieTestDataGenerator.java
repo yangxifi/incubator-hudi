@@ -605,8 +605,7 @@ public class HoodieTestDataGenerator {
     Map<Integer, KeyPartition> existingKeys = existingKeysBySchema.get(TRIP_EXAMPLE_SCHEMA);
     Integer numExistingKeys = numKeysBySchema.get(TRIP_EXAMPLE_SCHEMA);
     if (n > numExistingKeys) {
-      throw new IllegalArgumentException(
-          "Requested unique deletes is greater than number of available keys");
+      throw new IllegalArgumentException("Requested unique deletes is greater than number of available keys");
     }
 
     List<HoodieKey> result = new ArrayList<>();
@@ -638,8 +637,7 @@ public class HoodieTestDataGenerator {
     Map<Integer, KeyPartition> existingKeys = existingKeysBySchema.get(TRIP_EXAMPLE_SCHEMA);
     Integer numExistingKeys = numKeysBySchema.get(TRIP_EXAMPLE_SCHEMA);
     if (n > numExistingKeys) {
-      throw new IllegalArgumentException(
-          "Requested unique deletes is greater than number of available keys");
+      throw new IllegalArgumentException("Requested unique deletes is greater than number of available keys");
     }
 
     List<HoodieRecord> result = new ArrayList<>();
